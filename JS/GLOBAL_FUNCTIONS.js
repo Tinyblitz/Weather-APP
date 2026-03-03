@@ -12,20 +12,31 @@ export function formatHour(hour) {
   return `${adjustedHour} ${period}`;
 }
 
-export function handleCondition(cond) {
+export function formatDayOfTheWeek(date) {
+    return new Date(date).toLocaleDateString('en-US', { weekday: 'short' })
+}
+
+export function handleCondition(conditions) {
 
     const conditionsArr = ['clear', 'storm', 'rain', 'partially', 'cloudy'];     // Ordered by priority
 
-    const conditions = cond.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
+    const formattedConditions = conditions.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
     let condition = conditionsArr[0];       // Default condition is clear
     for (const c of conditionsArr) {
-        if (conditions.includes(c)) {
+        if (formattedConditions.includes(c)) {
             condition = c;
             break;
         }
     }
-
     if (condition === "partially") condition = 'partially cloudy';
+    return condition;
+}
 
+export function handleIconCondition(conditions, time) {
+    let condition = handleCondition(conditions);
+    if (condition === 'clear'){
+        if (isItDay(time)) condition += '-day';
+        else condition += '-night';
+    }
     return condition;
 }

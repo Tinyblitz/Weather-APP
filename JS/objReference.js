@@ -3,6 +3,7 @@
     {
         location,
         description,
+        timezone,
         days: [
             {
                 datetime

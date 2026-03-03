@@ -195,12 +195,6 @@ main {
     user-select: none;
 }
 
-#summary-icon {
-    width: 3vw;
-    height: 3vh;
-    fill: white;
-}
-
 #summary-stats {
     width: 100%;
     height: 80%;
@@ -218,6 +212,12 @@ main {
     cursor: pointer;
 }
 
+.summary-stat-icon {
+    width: auto;
+    height: 8vh;
+    fill: white;
+}
+
 #forecast {
     grid-area: 1 / 3 / 3 / 4;
     overflow-y: hidden;
@@ -226,6 +226,9 @@ main {
 }
 
 #forecast-label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     height: 10%;
     user-select: none;
 }
@@ -239,15 +242,33 @@ main {
     height: 90%;
 }
 
+#forecast > ul > li {
+    width: 100%;
+    flex: 1;
+    border-top: 1px solid white;
+}
+
 .forecast-stat {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
     width: 100%;
-    flex: 1;
-    border-top: 1px solid white;
+    height: 100%;
     cursor: pointer;
+}
+
+.forecast-stat > * {
+    flex: 1;
+}
+
+.forecast-stat > *:not(:first-child) {
+    text-align: center;
+}
+
+.forcast-stat-icon {
+    width: auto;
+    height: 3vh;
+    fill: white;
 }
 
 .summary-stat:hover, .forecast-stat:hover {

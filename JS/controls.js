@@ -7,6 +7,17 @@ function controls() {
     let isCelsius = false;
     function toggleTempCelsius() { isCelsius = !isCelsius };
 
+    function convert(data, day = null) {
+        return {
+            'description': day === null ? data.description : data.days[day].description
+        }
+    }
+
+    function update(desc) {
+        fadeOut(conditionDescription);
+        conditionDescription.innerText = desc;
+    }
+
     return {
         isTempCelsius: function() { return isCelsius },
         celsiusToFahrenheit: function(temp) { return (temp * 9/5) + 32; },
@@ -20,17 +31,16 @@ function controls() {
             }
             toggleTempCelsius();
         },
-        convert: function(data, day = null) {
-            return {
-                'description': !day ? data.description : data.days[day].description
-            }
+        updateByLocation: function(data) {
+            const obj = convert(data);
+            update(obj['description']);
         },
-        updateDesc: function(data) {
-            fadeOut(conditionDescription);
-            conditionDescription.innerText = data['description'];
+        updateByDay: function(data,day) {
+            const dayObj = convert(data,day);
+            update(dayObj['description']);
         },
         setup: function(data) {
-            this.updateDesc(this.convert(data));
+            this.updateByLocation(data);
         }
     };
 }

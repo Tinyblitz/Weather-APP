@@ -1,6 +1,8 @@
 import background from "./background.js";
 import selection from "./selection.js";
 import controls from "./controls.js";
+import summary from "./summary.js";
+import forecast from "./forecast.js";
 
 
 const tempMetricToggle = document.getElementById('temp-metric-toggle');
@@ -46,16 +48,7 @@ const fetchLocationData = () => {
         return data;
     })
     .then((response)=>{
-        const dataObj = {
-            'location': response.resolvedAddress
-                .split(/\s+/)
-                .map(word => word ? word[0].toUpperCase() + word.slice(1) : "")
-                .join(' '),
-            'description': response.description,
-            'days': []
-        };
 
-        console.log(dataObj)
         const timeZone = response.timezone;
         const timeByHour = new Date().toLocaleString("en-US", {
                                         timeZone,
@@ -63,8 +56,18 @@ const fetchLocationData = () => {
                                         hour12: false
                                         });
 
-        // Iterate to create a more a convenient shallow copy of the json
-        for (let i = 0; i < numDays; i++) {
+        const dataObj = {
+            'location': response.resolvedAddress
+                .split(/\s+/)
+                .map(word => word ? word[0].toUpperCase() + word.slice(1) : "")
+                .join(' '),
+            'description': response.description,
+            'timezone': timeZone,
+            'days': []
+        };
+
+        // Iterate to create a more convenient shallow copy of the json
+        for (let i = 0; i <= numDays; i++) {
             const curDay = response.days[i];
 
             const dayObj = Object.fromEntries(
@@ -96,15 +99,19 @@ const fetchLocationData = () => {
 
             dataObj['days'].push(dayObj);
         }
-
+        console.log(dataObj)
         ///*  INPUT DATA INTO UI *///
-
-        
-        background.setup(dataObj, 0);   // Set Background Image based on weather condition
-        selection.setup(dataObj);       // Set selection info
-        controls.setup(dataObj);        // Set description
+        background.setup(dataObj);   // Set Background Image based on weather condition
+        selection.setup(dataObj);
+        controls.setup(dataObj);
+        summary.setup(dataObj);
+        forecast.setup(dataObj);
                 
     });
+    // .catch((e) => {
+    //     alert('Location does not exist in database')
+    //     console.error(e.message)
+    // });
 }
 
 (function setup() {

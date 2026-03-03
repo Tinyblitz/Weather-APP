@@ -4,29 +4,40 @@ function background() {
 
     const body = document.querySelector('body');
     
+    function convert(data,day = 0,hour = null) {
+        const tempCond = hour === null ? data.days[day].conditions : data.days[day].hours[hour].conditions;
+        let condition = handleCondition(tempCond);
+
+        const time = hour === null ? data.days[day].hours[0].time : hour;
+
+        if (condition != 'storm') {
+            if (condition === 'partially cloudy') condition = 'partially-cloudy'; 
+            if (isItDay(time)) condition += '-day';
+            else condition += '-night';
+        }
+
+        return {
+            condition
+        }
+    }
+
+    function update(condition) { body.style.backgroundImage = `url('./assets/BGs/${condition}.png')`; }
 
     return {
-        convert: function(data,day = 0,hour = null) {
-            const tempCond = !hour ? data.days[day].conditions : data.days[day].hours[hour].conditions;
-            let condition = handleCondition(tempCond);
-
-            const time = !hour ? data.days[day].hours[0].time : hour;
-
-            if (condition != 'storm') {
-                if (condition === 'partially cloudy') condition = 'partially-cloudy'; 
-                if (isItDay(time)) condition += '-day';
-                else condition += '-night';
-            }
-
-            return {
-                condition
-            }
+        updateByLocation: function(data) {
+            const obj = convert(data);
+            update(obj.condition);
         },
-        update: function(data, hour) {
-            body.style.backgroundImage = `url('./assets/BGs/${data.condition}.png')`;
+        updateByDay: function(data,day) {
+            const obj = convert(data,day);
+            update(obj.condition);
+        },
+        updateByHour: function(data,day,hour) {
+            const obj = convert(data,day,hour);
+            update(obj.condition);
         },
         setup: function(data) {
-            this.update(this.convert(data, 0));
+            this.updateByLocation(data);
         }
     };
 }
