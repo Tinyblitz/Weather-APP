@@ -58,7 +58,7 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: space-evenly;
-    padding: 1vh 3vw;
+    padding: 2.5vh 3vw;
     color: white;
 }
 
@@ -75,6 +75,11 @@ main {
     width: 100%;
     height: auto;
     font-size: 4rem;
+}
+
+#selection-condition > * {
+    flex: 1;
+    text-align: center;
 }
 
 #selection-stats {
@@ -118,6 +123,10 @@ main {
 }
 
 #condition-description {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     position: relative;
     font-weight: bold;
     font-style: italic;
@@ -125,6 +134,8 @@ main {
     color: white;                     /* text fill */
     -webkit-text-stroke: 4px black; 
     paint-order: stroke fill;
+    flex: 1;
+    text-align: center;
 }
 
 #location-form {
@@ -180,9 +191,14 @@ main {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 1vw;
     height: 20%;
     user-select: none;
+}
+
+#summary-icon {
+    width: 3vw;
+    height: 3vh;
+    fill: white;
 }
 
 #summary-stats {
@@ -229,7 +245,7 @@ main {
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    flex: auto;
+    flex: 1;
     border-top: 1px solid white;
     cursor: pointer;
 }
@@ -267,7 +283,7 @@ main {
     width: 50%;
     height: 90%;
     background-color: blue;
-    left: 5%;
+    left: 45%;
     top: 5%;
     border-radius: 20px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.5);
@@ -275,5 +291,5 @@ main {
 }
 
 .toggle-btn.active .toggle-slider {
-    left: 45%;
+    left: 5%;
 }

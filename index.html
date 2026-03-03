@@ -13,12 +13,11 @@
                 <div id="selection-location">
                     <h2 id="selection-location-text" class="show"></h2>
                     <div id="selection-date" class="show">Loading date...</div>
+                    <div id="selection-time" class="show">Loading time...</div>
                 </div>
                 <div id="selection-condition">
-                    <div id="selection-icon">
-                        O.O
-                    </div>
-                    <h2 id="selection-temp" class="stat-temp show">24°</h2>
+                    <div id="selection-icon" class="show"></div>
+                    <h2 id="selection-temp" class="stat-temp show"></h2>
                 </div>
                 <div id="selection-stats">
                     <div id="stat-humidity" class="selection-stat">
@@ -69,8 +68,10 @@
             </div>
             <div id="hourly-summary" class="box">
                 <div id="summary-label">
-                    <span id="summary-icon">0.0</span>
-                    <h3>Hourly Summary - Today</h3>
+                    <svg id="summary-icon" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.41667 9.75C6.56594 9.75 7.66814 9.29345 8.4808 8.4808C9.29345 7.66814 9.75 6.56594 9.75 5.41667C9.75 4.2674 9.29345 3.16519 8.4808 2.35254C7.66814 1.53988 6.56594 1.08333 5.41667 1.08333C4.2674 1.08333 3.16519 1.53988 2.35254 2.35254C1.53988 3.16519 1.08333 4.2674 1.08333 5.41667C1.08333 6.56594 1.53988 7.66814 2.35254 8.4808C3.16519 9.29345 4.2674 9.75 5.41667 9.75ZM5.41667 0C6.12799 0 6.83236 0.140106 7.48954 0.412319C8.14672 0.684532 8.74384 1.08352 9.24683 1.5865C9.74981 2.08949 10.1488 2.68662 10.421 3.3438C10.6932 4.00098 10.8333 4.70534 10.8333 5.41667C10.8333 6.85326 10.2627 8.23101 9.24683 9.24683C8.23101 10.2627 6.85326 10.8333 5.41667 10.8333C2.42125 10.8333 0 8.39583 0 5.41667C0 3.98008 0.570683 2.60233 1.5865 1.5865C2.60233 0.570683 3.98008 0 5.41667 0ZM5.6875 2.70833V5.55208L8.125 6.99833L7.71875 7.66458L4.875 5.95833V2.70833H5.6875Z" />
+                    </svg>
+                    <h3>Hourly Summary - <span id="summary-label-text" class="show">Today</span></h3>
                 </div>
                 <div id="summary-stats">
                     <div class="summary-stat">
@@ -126,14 +127,14 @@
                 </div>
             </div>
             <div id="forecast" class="box">
-                <h2 id="forecast-label">Forecast</h2>
+                <h2 id="forecast-label">7-Day Forecast</h2>
                 <ul>
-                    <li class="forecast-stat">
+                    <li class="forecast-stat show">
                         <p>Today</p>
                         <span>O.O</span>
-                        <p>58°</p>
+                        <p class="stat-temp">80°</p>
                         <p>-</p>
-                        <p>80°</p>
+                        <p class="stat-temp">80°</p>
                     </li>
                     <li class="forecast-stat">
                         <p>Today</p>

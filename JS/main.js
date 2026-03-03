@@ -1,51 +1,23 @@
-import { cloud, sun, rain } from '../icons.js';
+import background from "./background.js";
+import selection from "./selection.js";
+import controls from "./controls.js";
 
-const body = document.querySelector('body');
+
 const tempMetricToggle = document.getElementById('temp-metric-toggle');
 
-let isCelsius = false;
-
 const conditionsArr = ['clear', 'storm', 'rain', 'cloudy'];     // Ordered by priority
-
-
-// Selection stuff
-
-const selectionTemp = document.getElementById('selection-temp');
-const humidityStat = document.querySelector('#stat-humidity .selection-stat-text');
-const precipprobStat = document.querySelector('#stat-precipprob .selection-stat-text');
-const windspeedStat = document.querySelector('#stat-windspeed .selection-stat-text');
-const uvindexStat = document.querySelector('#stat-uvindex .selection-stat-text');
 
 // Location Input Stuff
 
 const locationInput = document.getElementById('location-input');
 const locationForm = document.getElementById('location-form');
-const conditionDesc = document.getElementById('condition-description');
 
 const DEFAULT_LOCATION = 'new york';
 let currentLocation;
 const numDays = 7;
 
-const daysArray = [];       // Holds fetched location weather data, separated by day
 const dailyItems = ["datetime", "temp", "tempmax", "tempmin", "feelslike", "precipprob", "humidity", "windspeed", "uvindex", "conditions", "description"];
-
-
-
-function convertFahrenheightToCelsius (temp) { return ((temp - 32) * 5 / 9); }
-function celsiusToFahrenheit(temp) { return (temp * 9/5) + 32; }
-
-// Set fade animation for content change
-function fadeOut(el) {
-    el.classList.replace('show','fade');
-    setTimeout(() => {
-        el.classList.replace('fade','show');
-    },500);
-}
-
-function updateStats(el, text) {
-    fadeOut(el);
-    el.innerText = text;
-}
+const hourlyItems = ["temp", "feelslike", "precipprob", "humidity", "windspeed", "uvindex", "conditions"]
 
 // Set weather stats to user's current location
 async function fetchCurrentLocation () {
@@ -63,95 +35,79 @@ async function fetchCurrentLocation () {
 };
 
 const fetchLocationData = () => {
-    fetch(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${currentLocation}?key=BH4K26569UHSHTVJK7QYMD4LP&include=days`)
+    fetch(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${currentLocation}?key=BH4K26569UHSHTVJK7QYMD4LP`)
+    .then((response)=> response.json())
     .then((response)=>{
-        return response.json();
+        const data = response;
+        const daysData = data.days;
+        if (!daysData) throw new Error('Json does not have "days" data');
+        if (!daysData[0].hours) throw new Error('Json does not have "hours" data');
+
+        return data;
     })
     .then((response)=>{
+        const dataObj = {
+            'location': response.resolvedAddress
+                .split(/\s+/)
+                .map(word => word ? word[0].toUpperCase() + word.slice(1) : "")
+                .join(' '),
+            'description': response.description,
+            'days': []
+        };
 
-        //console.log(response);
+        console.log(dataObj)
+        const timeZone = response.timezone;
+        const timeByHour = new Date().toLocaleString("en-US", {
+                                        timeZone,
+                                        hour: "2-digit",
+                                        hour12: false
+                                        });
 
-        daysArray.length = 0;
-
+        // Iterate to create a more a convenient shallow copy of the json
         for (let i = 0; i < numDays; i++) {
-            let curDay = response.days[i];
-            
-            const newObj = Object.fromEntries(
+            const curDay = response.days[i];
+
+            const dayObj = Object.fromEntries(
             dailyItems
                 .filter(key => key in curDay)
                 .map(key => [key, curDay[key]])
             );
-            daysArray.push(newObj);
-        }
+            dayObj['hours'] = [];
 
-        // for (const day of daysArray){
-        //     console.log("Date:", day.datetime)
-        //     console.log("Temperature:", Math.round(day.temp))
-        //     console.log("Humidity:", Math.round(day.humidity))
-        //     console.log("Wind Speed:", Math.round(day.windspeed))
-        // }
+            // Set hours obj based on current time and extend for 24 hours, possibly into next day
+            const nextDayNumHours = timeByHour;
+            let allHours;
+            const nextDay = response.days[i+1];
+            if (timeByHour === 0 || !nextDay) allHours = [...curDay.hours];
+            else allHours = [...curDay.hours.slice(timeByHour), ...nextDay.hours.slice(0,nextDayNumHours)];
+
+            for (let j = 0; j < allHours.length; j++) {
+                const curHour = allHours[j];
+
+                const hourObj = Object.fromEntries(
+                hourlyItems
+                    .filter(key => key in curHour)
+                    .map(key => [key, curHour[key]])
+                );
+                hourObj['time'] = Number(curHour.datetime.split(":")[0]);
+
+                dayObj['hours'].push(hourObj);
+            }
+
+            dataObj['days'].push(dayObj);
+        }
 
         ///*  INPUT DATA INTO UI *///
 
-        // Set Background Image based on weather condition
-        const conditions = daysArray[0].conditions.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/); ;
-        let condition = conditionsArr[0];       // Default condition is clear
-        for (const c of conditionsArr) {
-            if (conditions.includes(c)) {
-                condition = c;
-                break;
-            }
-        }
-
-        body.style.backgroundImage = `url('./assets/BGs/${condition}-day.png')`;
-
-        // Set selection info
-        const locationText = response.resolvedAddress
-            .split(/\s+/)
-            .map(word => word[0].toUpperCase() + word.slice(1))
-            .join(' ');
-        console.log(locationText);
-        updateStats(document.getElementById('selection-location-text'), locationText)
-        updateStats(document.getElementById('selection-date'), `${daysArray[0].datetime}`);
-
-
-        //"precipprob", "humidity", "windspeed", "uvindex"
-        updateStats(conditionDesc, `'${daysArray[0].description}'`);
-        updateStats(humidityStat, `${Math.round(daysArray[0].humidity)}`);
-        updateStats(precipprobStat, `${Math.round(daysArray[0].precipprob)}%`);
-        updateStats(windspeedStat, `${Math.round(daysArray[0].windspeed)} km/h`);
-        updateStats(uvindexStat, `${Math.round(daysArray[0].uvindex)}`);
         
-        
-
-    })
-    .catch(()=>{
-        alert("Location is not valid");
+        background.setup(dataObj, 0);   // Set Background Image based on weather condition
+        selection.setup(dataObj);       // Set selection info
+        controls.setup(dataObj);        // Set description
+                
     });
 }
 
 (function setup() {
-    // Make accurately timed clock
-    //let timeString;
-    // (function setClock() {
-    //     function updateClock() {
-    //         const now = new Date();
-    //         // Format: 12-hour - AM/PM
-    //         timeString = now.toLocaleTimeString([], { 
-    //             hour: 'numeric', 
-    //             minute: '2-digit', 
-    //             hour12: true 
-    //         });
-
-    //         // Display it on the screen
-    //         document.querySelector('.clock').textContent = timeString;
-    //     }
-    //     updateClock();
-    //     setInterval(updateClock,10000); // Refresh clock every 10 seconds
-    // })();
-
-    //console.log(timeString.slice(0,2));
-
     // Set user's location
     currentLocation = sessionStorage.getItem('city');       // Reference inital call to ipapi
     if (!currentLocation) fetchCurrentLocation();
@@ -171,5 +127,5 @@ locationForm.addEventListener('submit', handleLocationRequest);
 
 tempMetricToggle.addEventListener('click', () => {
     tempMetricToggle.classList.toggle('active');
-    isCelsius = !isCelsius;
+    controls.toggleTemp();
 })
