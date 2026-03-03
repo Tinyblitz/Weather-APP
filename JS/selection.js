@@ -73,7 +73,10 @@ function selection() {
             const hourObj = convert(data,day,hour);
             // Update Stats
             Object.entries(numElements)
-                .filter(([key]) => !doNotUpdateByHour.includes(key))
+                .filter(([key, el]) => {
+                    if (key === 'date' && el.textContent != hourObj[key]) return true;  // Account for day change at midnight
+                    else return !doNotUpdateByHour.includes(key);
+                })
                 .forEach(([key, el]) => {
                     fadeOut(el);
                     setEl(el, hourObj[key]);

@@ -8,7 +8,7 @@ function background() {
         const tempCond = hour === null ? data.days[day].conditions : data.days[day].hours[hour].conditions;
         let condition = handleCondition(tempCond);
 
-        const time = hour === null ? data.days[day].hours[0].time : hour;
+        const time = hour === null ? data.days[day].hours[0].time : data.days[day].hours[hour].time;
 
         if (condition != 'storm') {
             if (condition === 'partially cloudy') condition = 'partially-cloudy'; 

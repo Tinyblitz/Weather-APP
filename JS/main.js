@@ -7,8 +7,6 @@ import forecast from "./forecast.js";
 
 const tempMetricToggle = document.getElementById('temp-metric-toggle');
 
-const conditionsArr = ['clear', 'storm', 'rain', 'cloudy'];     // Ordered by priority
-
 // Location Input Stuff
 
 const locationInput = document.getElementById('location-input');
@@ -33,11 +31,11 @@ async function fetchCurrentLocation () {
     }   
     currentLocation = data.city;
     sessionStorage.setItem('city', currentLocation);       // Avoid repeated API calls on page refresh
-    fetchLocationData()
+    return fetchLocationData()
 };
 
-const fetchLocationData = () => {
-    fetch(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${currentLocation}?key=BH4K26569UHSHTVJK7QYMD4LP`)
+function fetchLocationData() {
+    return (fetch(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${currentLocation}?key=BH4K26569UHSHTVJK7QYMD4LP`)
     .then((response)=> response.json())
     .then((response)=>{
         const data = response;
@@ -49,7 +47,8 @@ const fetchLocationData = () => {
     })
     .then((response)=>{
 
-        const timeZone = response.timezone;
+        const responseObj = structuredClone(response);
+        const timeZone = responseObj.timezone;
         const timeByHour = new Date().toLocaleString("en-US", {
                                         timeZone,
                                         hour: "2-digit",
@@ -57,18 +56,39 @@ const fetchLocationData = () => {
                                         });
 
         const dataObj = {
-            'location': response.resolvedAddress
+            'location': responseObj.resolvedAddress
                 .split(/\s+/)
                 .map(word => word ? word[0].toUpperCase() + word.slice(1) : "")
                 .join(' '),
-            'description': response.description,
+            'description': responseObj.description,
             'timezone': timeZone,
             'days': []
         };
 
+        // Fix glitch in received Json where the 6th day is missing the 2AM data - max it to account for any missing hours
+        for (const day of responseObj.days) {
+            if (day.hours.length >= 24) continue;   // No issues if there are 24 items in hour array, assume no glitch +24 items
+            let hourIterator = 0;
+            let hoursArr = [...day.hours];
+            while (hourIterator < 24) {
+                let dateStringArr = hoursArr[hourIterator].datetime.split(":");     // Assumes "00:00:00" format
+                const dTime = Number(dateStringArr[0]);
+                if (dTime > hourIterator){
+                    const targetItem = hourIterator !== 0 ? hoursArr[hourIterator - 1] : hoursArr[hourIterator + 1];   // Clone missing item from the item before (or after if first item)
+                    const newItem = structuredClone(targetItem);
+                    dateStringArr[0] = hourIterator.toString().padStart(2, "0");
+                    const newDateString = dateStringArr.join(":");
+                    newItem.datetime = newDateString;
+                    hoursArr.splice(hourIterator, 0, newItem);  // Insert missing item
+                }
+                hourIterator++;
+            }
+            day.hours = [...hoursArr];
+        }
+
         // Iterate to create a more convenient shallow copy of the json
         for (let i = 0; i <= numDays; i++) {
-            const curDay = response.days[i];
+            const curDay = responseObj.days[i];
 
             const dayObj = Object.fromEntries(
             dailyItems
@@ -80,10 +100,9 @@ const fetchLocationData = () => {
             // Set hours obj based on current time and extend for 24 hours, possibly into next day
             const nextDayNumHours = timeByHour;
             let allHours;
-            const nextDay = response.days[i+1];
+            const nextDay = responseObj.days[i+1];
             if (timeByHour === 0 || !nextDay) allHours = [...curDay.hours];
             else allHours = [...curDay.hours.slice(timeByHour), ...nextDay.hours.slice(0,nextDayNumHours)];
-
             for (let j = 0; j < allHours.length; j++) {
                 const curHour = allHours[j];
 
@@ -96,38 +115,43 @@ const fetchLocationData = () => {
 
                 dayObj['hours'].push(hourObj);
             }
-
             dataObj['days'].push(dayObj);
         }
-        console.log(dataObj)
-        ///*  INPUT DATA INTO UI *///
-        background.setup(dataObj);   // Set Background Image based on weather condition
-        selection.setup(dataObj);
-        controls.setup(dataObj);
-        summary.setup(dataObj);
-        forecast.setup(dataObj);
-                
-    });
-    // .catch((e) => {
-    //     alert('Location does not exist in database')
-    //     console.error(e.message)
-    // });
+        return dataObj;
+    })
+    .catch((e) => {
+        alert('Location does not exist in database')
+        console.error(e.message)
+    }));
 }
 
-(function setup() {
+function updateData(dataObj) {
+    ///*  INPUT DATA INTO UI *///
+    background.setup(dataObj);   // Set Background Image based on weather condition
+    selection.setup(dataObj);
+    controls.setup(dataObj);
+    summary.setup(dataObj);
+    forecast.setup(dataObj);
+}
+
+(async function setup() {
     // Set user's location
     currentLocation = sessionStorage.getItem('city');       // Reference inital call to ipapi
-    if (!currentLocation) fetchCurrentLocation();
-    else fetchLocationData();
+    
+    let dataObj;
+    if (!currentLocation) dataObj = await fetchCurrentLocation();
+    else dataObj = await fetchLocationData();
 
+    updateData(dataObj);
 })();
 
-const handleLocationRequest = () => {
+const handleLocationRequest = async () => {
 
     currentLocation = locationInput.value.trim();
     locationInput.value = "";
 
-    fetchLocationData();
+    const dataObj = await fetchLocationData();
+    updateData(dataObj);
 }
 
 locationForm.addEventListener('submit', handleLocationRequest);

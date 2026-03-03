@@ -12,8 +12,8 @@ export function formatHour(hour) {
   return `${adjustedHour} ${period}`;
 }
 
-export function formatDayOfTheWeek(date) {
-    return new Date(date).toLocaleDateString('en-US', { weekday: 'short' })
+export function formatDayOfTheWeek(date, type) {
+    return new Date(date).toLocaleDateString('en-US', { weekday: type })
 }
 
 export function handleCondition(conditions) {

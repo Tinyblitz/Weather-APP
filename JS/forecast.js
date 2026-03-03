@@ -13,7 +13,7 @@ function forecast() {
             days.map((day, index) => {
                 const time = day.hours[0].time;
                 return {
-                    'dayOfTheWeek': index === 0 ? 'Today' : formatDayOfTheWeek(day.datetime),
+                    'dayOfTheWeek': index === 0 ? 'Today' : formatDayOfTheWeek(day.datetime, 'short'),
                     'tempmax': Math.round(day.tempmax).toString() + '°', 
                     'tempmin': Math.round(day.tempmin).toString() + '°', 
                     'icon': icons[handleIconCondition(day.conditions, time)]

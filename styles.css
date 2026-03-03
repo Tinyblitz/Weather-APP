@@ -198,8 +198,20 @@ main {
 #summary-stats {
     width: 100%;
     height: 80%;
-    overflow: hidden;
+    overflow-x: scroll;
     white-space: nowrap;
+    user-select: none;
+    scroll-behavior: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+#summary-stats.active, #summary-stats.active * {
+  cursor: grabbing;
+}
+
+.summary-stats::-webkit-scrollbar {
+  display: none;
 }
 
 .summary-stat {

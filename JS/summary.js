@@ -4,13 +4,53 @@ import selection from './selection.js';
 import { formatDayOfTheWeek, formatHour, handleIconCondition } from './GLOBAL_FUNCTIONS.js';
 import { fadeOut } from './animations.js';
 
+let mouseHasMoved = false;
+
+function setUpScroll(container) {
+
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+    
+    container.addEventListener('mousedown', (e) => {
+        isDown = true;
+        container.classList.add('active');
+        startX = e.pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
+        
+    });
+
+    container.addEventListener('mouseleave', () => {
+        isDown = false;
+        container.classList.remove('active');
+    });
+
+    container.addEventListener('mouseup', () => {
+        isDown = false;
+        container.classList.remove('active');
+        setTimeout(() => mouseHasMoved = false, 0);
+    });
+
+    container.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        mouseHasMoved = true;
+        e.preventDefault();
+        const x = e.pageX - container.offsetLeft;
+        const walk = (x - startX) * 1; // multiplier for speed
+        container.scrollLeft = scrollLeft - walk;
+    });
+}
+
+
 function summary() {
 
+    const summaryStats = document.getElementById('summary-stats');
     const summaryDate = document.getElementById('summary-date');
+    setUpScroll(summaryStats);
 
     function convert(data, day = 0) {
         return {    // Return object with day of the week and an array of hours
-            'dayOfTheWeek': day === 0 ? 'Today' : formatDayOfTheWeek(data.days[day].datetime),
+            'dayOfTheWeek': day === 0 ? 'Today' : formatDayOfTheWeek(data.days[day].datetime, 'long'),
             'hours': 
                 data.days[day].hours.map((hour, index) => {
                     return {
@@ -23,6 +63,7 @@ function summary() {
     }
 
     function update(data, hoursObj, day = 0) {
+        summaryStats.scrollLeft = 0; // Reset container position
         fadeOut(summaryDate);
         summaryDate.textContent = hoursObj.dayOfTheWeek;
 
@@ -38,6 +79,7 @@ function summary() {
             `;
             hourEls[i].querySelector('svg').classList.add('summary-stat-icon');
             hourEls[i].onclick = () => {     // Set background image, selection stats
+                if (mouseHasMoved) return;
                 background.updateByHour(data,day,i);
                 selection.updateByHour(data,day,i);
             };
